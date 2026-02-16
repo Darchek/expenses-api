@@ -1,0 +1,17 @@
+name: expenses
+
+services:
+  expenses:
+    image: expenses:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "0:80"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5432
+      - DB_NAME=mydb
+      - DB_USER=postgres
+      - DB_PASSWORD=us806dFr65LKIKcGbQLQgpFOVqaa
+    restart: unless-stopped
