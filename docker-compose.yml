@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "0:80"
+      - "55007:80"
     environment:
       - DB_HOST=host.docker.internal
       - DB_PORT=5432
