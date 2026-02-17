@@ -1,0 +1,15 @@
+# Lightweight test image — does NOT include nginx, Node.js, or frontend
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install prod deps + test deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt pytest httpx
+
+# Copy only what pytest needs
+COPY main.py expense_classifier.py ./
+COPY models/ ./models/
+COPY tests/ ./tests/
+
+CMD ["pytest", "tests/", "-v", "--tb=short"]
