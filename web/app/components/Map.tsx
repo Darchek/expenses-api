@@ -114,7 +114,7 @@ export default function Map() {
       <div className="w-full md:w-1/3 h-auto md:h-full bg-gray-800 overflow-y-auto order-2 md:order-2">
         <div className="p-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span>📍</span> Notifications
+            <span>📍</span> NotificationsA
           </h2>
           <p className="text-sm text-gray-400 mt-1">
             {validNotifications.length} location{validNotifications.length !== 1 ? 's' : ''}
