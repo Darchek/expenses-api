@@ -1,8 +1,10 @@
 """Tests for FastAPI endpoints in main.py"""
 import sys
 import types
-import pytest
+from datetime import datetime
 from unittest.mock import patch, MagicMock
+
+import requests
 from fastapi.testclient import TestClient
 
 # Stub psycopg2 before importing the app (it's not installable in the local venv)
@@ -97,7 +99,7 @@ class TestPostNotification:
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (42, "com.bank.app", None)
+        mock_cursor.fetchone.return_value = (42, datetime.fromtimestamp(100000), None)
 
         with patch("psycopg2.connect", return_value=mock_conn):
             response = client.post("/notifications", json=VALID_NOTIFICATION)
@@ -123,7 +125,7 @@ class TestPostNotification:
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (1, "com.bank.app", None)
+        mock_cursor.fetchone.return_value = (1, datetime.fromtimestamp(100000), None)
 
         payload = {**VALID_NOTIFICATION, "text": "Paid €12.00 at Mercadona 🛒"}
         with patch("psycopg2.connect", return_value=mock_conn):
@@ -138,7 +140,7 @@ class TestPostNotification:
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (2, "com.bank.app", None)
+        mock_cursor.fetchone.return_value = (2, datetime.fromtimestamp(100000), None)
 
         payload = {**VALID_NOTIFICATION, "text": "PAID €5.00 coffee"}
         with patch("psycopg2.connect", return_value=mock_conn):
@@ -154,8 +156,8 @@ class TestGetNotifications:
     def _make_row(self, serial_id=1):
         from datetime import datetime
         return (
-            serial_id, "notif-id-1", "com.bank.app", "key", "tag",
-            1700000000000, True, "payment", "Payment", "Paid €10.00",
+            serial_id, "notify-id", "key", "tag",
+            datetime.fromtimestamp(1700000000), True, "payment", "Payment", "Paid €10.00",
             None, None, 41.38, 2.17, datetime(2024, 1, 1), "grocery", 10.0, "€"
         )
 
