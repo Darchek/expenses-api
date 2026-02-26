@@ -3,8 +3,6 @@ import sys
 import types
 from datetime import datetime
 from unittest.mock import patch, MagicMock
-
-import requests
 from fastapi.testclient import TestClient
 
 # Stub psycopg2 before importing the app (it's not installable in the local venv)
