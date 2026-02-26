@@ -1,14 +1,28 @@
 name: expenses
 
 services:
-  expenses:
-    image: expenses:latest
-    container_name: expenses-dashboard
+  backend:
+    image: expenses-backend:latest
+    container_name: expenses-api
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend
     ports:
-      - "55007:80"
+      - "18110:8000"
     env_file:
       - .env
+    restart: unless-stopped
+
+  frontend:
+    image: expenses-frontend:latest
+    container_name: expenses-dashboard
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "55007:3000"
+    environment:
+      - BACKEND_URL=http://backend:18110
+    depends_on:
+      - backend
     restart: unless-stopped
