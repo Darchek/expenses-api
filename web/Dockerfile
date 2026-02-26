@@ -1,5 +1,7 @@
 FROM node:20-alpine AS base
 
+ENV BACKEND_URL=http://backend:8000
+
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
