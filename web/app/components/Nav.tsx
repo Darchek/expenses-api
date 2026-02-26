@@ -32,6 +32,7 @@ export default function Nav() {
 
       {[
         { href: '/', label: 'Dashboard' },
+        { href: '/carrefour', label: 'Carrefour' },
         { href: '/map', label: 'Map' },
       ].map(({ href, label }) => {
         const active = path === href;

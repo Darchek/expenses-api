@@ -3,6 +3,8 @@ from fastapi import HTTPException
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
+
+from models import Product
 from models.carrefour_client import CarrefourClient
 from models.purchase import Purchase
 from database import get_db
@@ -35,6 +37,16 @@ def get_purchases(
         "data": [p.to_dict() for p in purchases]
     }
 
+@router.get("/products")
+def get_products(
+    db: Session = Depends(get_db),
+):
+    products = db.query(Product).all()
+    return {
+        "count": len(products),
+        "data": [p.to_dict() for p in products]
+    }
+
 @router.get("/last")
 def get_last_purchases(
     db: Session = Depends(get_db),
@@ -49,6 +61,16 @@ def get_purchase(purchase_id: str, db: Session = Depends(get_db)):
     if not purchase:
         raise HTTPException(status_code=404, detail=f"Purchase with ID {purchase_id} not found")
     return purchase.to_dict()
+
+@router.post("/purchase/{purchase_id}/save")
+def save_purchase(purchase_id: str, db: Session = Depends(get_db)):
+    cc = CarrefourClient()
+    purchase = cc.get_purchase(purchase_id)
+    db.add(purchase)
+    db.commit()
+    db.refresh(purchase)
+    return purchase.to_dict()
+
 
 
 # Carrefour website
