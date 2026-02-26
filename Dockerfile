@@ -28,6 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Backend source
 COPY main.py expense_classifier.py ./
 COPY models/ ./models/
+COPY routes/ ./routes/
 
 # Next.js standalone build
 COPY --from=frontend-builder /frontend/.next/standalone /app/web/

@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt pytest httpx
 # Copy only what pytest needs
 COPY main.py expense_classifier.py ./
 COPY models/ ./models/
+COPY routes/ ./routes/
 COPY tests/ ./tests/
 
 CMD ["pytest", "tests/", "-v", "--tb=short"]
