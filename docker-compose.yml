@@ -3,6 +3,7 @@ name: expenses
 services:
   expenses:
     image: expenses:latest
+    container_name: expenses-dashboard
     build:
       context: .
       dockerfile: Dockerfile
