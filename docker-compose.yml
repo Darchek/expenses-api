@@ -3,6 +3,7 @@ name: expenses
 services:
   backend:
     image: expenses-backend:latest
+    pull_policy: build
     container_name: expenses-api
     build:
       context: .
@@ -15,6 +16,7 @@ services:
 
   frontend:
     image: expenses-frontend:latest
+    pull_policy: build
     container_name: expenses-dashboard
     build:
       context: ./web
