@@ -1,26 +1,21 @@
 """Tests for FastAPI endpoints in main.py"""
-import sys
-import types
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
-# Stub psycopg2 before importing the app (it's not installable in the local venv)
-class _FakeIntegrityError(Exception):
-    """Distinct stub so it doesn't swallow generic exceptions."""
-
-
-_psycopg2_stub = types.ModuleType("psycopg2")
-_psycopg2_stub.connect = MagicMock()
-_psycopg2_stub.extras = types.ModuleType("psycopg2.extras")
-_psycopg2_stub.extras.Json = lambda x: x  # simple passthrough
-_psycopg2_stub.IntegrityError = _FakeIntegrityError
-sys.modules.setdefault("psycopg2", _psycopg2_stub)
-sys.modules.setdefault("psycopg2.extras", _psycopg2_stub.extras)
-
-from main import app  # noqa: E402
+from main import app
+from database import get_db
 
 client = TestClient(app)
+
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+def _override_db(db):
+    """Return a FastAPI dependency override that yields the given mock session."""
+    def _override():
+        yield db
+    return _override
 
 
 # ─── Fixtures ───────────────────────────────────────────────────────────────
@@ -53,54 +48,73 @@ class TestRoot:
 
 class TestHealth:
     def test_health_connected(self):
-        mock_conn = MagicMock()
-        with patch("psycopg2.connect", return_value=mock_conn):
+        mock_db = MagicMock()
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
             response = client.get("/health")
+        finally:
+            app.dependency_overrides.clear()
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
         assert data["database"] == "connected"
 
     def test_health_disconnected(self):
-        with patch("psycopg2.connect", side_effect=Exception("connection refused")):
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = Exception("connection refused")
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
             response = client.get("/health")
+        finally:
+            app.dependency_overrides.clear()
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "unhealthy"
         assert "disconnected" in data["database"]
 
 
-# ─── POST /notifications ──────────────────────────────────────────────────────
+# ─── POST /expenses ──────────────────────────────────────────────────────
 
 class TestPostNotification:
+    def _make_insert_db(self, expense_id=42):
+        """Return a mock session that simulates a successful insert."""
+        mock_db = MagicMock()
+
+        def _refresh(obj):
+            obj.id = expense_id
+            obj.created_at = datetime(2024, 1, 1)
+
+        mock_db.refresh.side_effect = _refresh
+        return mock_db
+
     def test_filtered_when_not_paid(self):
         """Notifications without 'paid' in text should be filtered."""
         payload = {**VALID_NOTIFICATION, "text": "New message from John"}
-        response = client.post("/notifications", json=payload)
+        response = client.post("/expenses", json=payload)
         assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "filtered"
+        assert response.json()["status"] == "filtered"
 
     def test_filtered_wallet_package(self):
-        """Wallet package notifications should be filtered even if text contains 'paid'."""
+        """Wallet package expenses should be filtered even if text contains 'paid'."""
         payload = {
             **VALID_NOTIFICATION,
             "packageName": "com.wallet.app",
             "text": "Paid €10.00 something",
         }
-        response = client.post("/notifications", json=payload)
+        response = client.post("/expenses", json=payload)
         assert response.status_code == 200
         assert response.json()["status"] == "filtered"
 
     def test_successful_insert(self):
-        """Valid paid notification should be inserted and return success."""
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (42, datetime.fromtimestamp(100000), None)
-
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.post("/notifications", json=VALID_NOTIFICATION)
+        """Valid paid expenses should be inserted and return success."""
+        mock_db = self._make_insert_db(42)
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.post("/expenses", json=VALID_NOTIFICATION)
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
         data = response.json()
@@ -109,64 +123,84 @@ class TestPostNotification:
 
     def test_db_error_returns_500(self):
         """DB failure during insert should return 500."""
-        with patch("main.get_db_connection", side_effect=Exception("db down")):
-            response = client.post("/notifications", json=VALID_NOTIFICATION)
+        mock_db = MagicMock()
+        mock_db.add.side_effect = Exception("db down")
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.post("/expenses", json=VALID_NOTIFICATION)
+        finally:
+            app.dependency_overrides.clear()
+
         assert response.status_code == 500
 
     def test_missing_required_field_returns_422(self):
         """Omitting required fields should return validation error."""
-        response = client.post("/notifications", json={"packageName": "com.test"})
+        response = client.post("/expenses", json={"packageName": "com.test"})
         assert response.status_code == 422
 
     def test_auto_detects_expense_type(self):
         """Expense type should be auto-detected when not provided."""
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (1, datetime.fromtimestamp(100000), None)
-
+        mock_db = self._make_insert_db(1)
+        app.dependency_overrides[get_db] = _override_db(mock_db)
         payload = {**VALID_NOTIFICATION, "text": "Paid €12.00 at Mercadona 🛒"}
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.post("/notifications", json=payload)
+        try:
+            response = client.post("/expenses", json=payload)
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
-        # Verify cursor.execute was called (i.e., the insert happened)
-        assert mock_cursor.execute.called
+        assert mock_db.add.called
 
     def test_case_insensitive_paid_filter(self):
         """'PAID' in uppercase should also pass the filter."""
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (2, datetime.fromtimestamp(100000), None)
-
+        mock_db = self._make_insert_db(2)
+        app.dependency_overrides[get_db] = _override_db(mock_db)
         payload = {**VALID_NOTIFICATION, "text": "PAID €5.00 coffee"}
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.post("/notifications", json=payload)
+        try:
+            response = client.post("/expenses", json=payload)
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
         assert response.json()["status"] == "success"
 
 
-# ─── GET /notifications ────────────────────────────────────────────────────
+# ─── GET /expenses ────────────────────────────────────────────────────
 
 class TestGetNotifications:
-    def _make_row(self, serial_id=1):
-        from datetime import datetime
-        return (
-            serial_id, "notify-id", "key", "tag",
-            datetime.fromtimestamp(1700000000), True, "payment", "Payment", "Paid €10.00",
-            None, None, 41.38, 2.17, datetime(2024, 1, 1), "grocery", 10.0, "€"
-        )
+    def _make_expense(self, id=1):
+        e = MagicMock()
+        e.id = id
+        e.text = "Paid €10.00 at Shop"
+        e.latitude = 41.38
+        e.longitude = 2.17
+        e.post_time = datetime(2024, 1, 1)
+        e.category = "grocery"
+        e.amount = 10.0
+        e.currency = "€"
+        e.shop_name = "Shop"
+        e.created_at = datetime(2024, 1, 1)
+        return e
+
+    def _make_query_db(self, expenses):
+        mock_db = MagicMock()
+        (
+            mock_db.query.return_value
+            .order_by.return_value
+            .offset.return_value
+            .limit.return_value
+            .all.return_value
+        ) = expenses
+        return mock_db
 
     def test_get_notifications_success(self):
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = [self._make_row(1), self._make_row(2)]
-
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.get("/notifications")
+        expenses = [self._make_expense(1), self._make_expense(2)]
+        mock_db = self._make_query_db(expenses)
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.get("/expenses")
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
         data = response.json()
@@ -175,32 +209,35 @@ class TestGetNotifications:
         assert len(data["data"]) == 2
 
     def test_get_notifications_empty(self):
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = []
-
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.get("/notifications")
+        mock_db = self._make_query_db([])
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.get("/expenses")
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
         assert response.json()["count"] == 0
 
     def test_get_notifications_pagination_params(self):
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = []
-
-        with patch("psycopg2.connect", return_value=mock_conn):
-            response = client.get("/notifications?limit=10&offset=5")
+        mock_db = self._make_query_db([])
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.get("/expenses?limit=10&offset=5")
+        finally:
+            app.dependency_overrides.clear()
 
         assert response.status_code == 200
-        # Check the query was called with the right params
-        call_args = mock_cursor.execute.call_args
-        assert call_args[0][1] == (10, 5)
+        mock_db.query.return_value.order_by.return_value.offset.assert_called_once_with(5)
+        mock_db.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_once_with(10)
 
     def test_get_notifications_db_error(self):
-        with patch("psycopg2.connect", side_effect=Exception("db down")):
-            response = client.get("/notifications")
+        mock_db = MagicMock()
+        mock_db.query.side_effect = Exception("db down")
+        app.dependency_overrides[get_db] = _override_db(mock_db)
+        try:
+            response = client.get("/expenses")
+        finally:
+            app.dependency_overrides.clear()
+
         assert response.status_code == 500
