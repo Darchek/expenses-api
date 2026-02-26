@@ -149,10 +149,9 @@ class CarrefourClient:
         return response.json().get("content", {}).get("docs", [])
 
     def find_last_purchase(self) -> Purchase | None:
-        from_date = (datetime.now() - timedelta(minutes=5) - timedelta(hours=10)).isoformat()
-        for i in range(60 * 5):
-            from_date = (datetime.now() - timedelta(minutes=5) - timedelta(hours=3*10)).isoformat()
-            print(i, from_date)
+        from_date = (datetime.now() - timedelta(minutes=5)).isoformat()
+        for i in range(60):
+            logger.info(f"Looking for ticket {i} - {from_date}")
             data = self.get_last_purchase(from_date=from_date)
             if data:
                 return data

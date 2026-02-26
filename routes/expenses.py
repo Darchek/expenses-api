@@ -180,17 +180,3 @@ async def update_notifications(limit: int = 100, offset: int = 0, db: Session = 
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update expenses: {str(e)}")
-
-
-@router.put("/purchase-test")
-async def purchase_test(background_tasks: BackgroundTasks):
-    client = CarrefourClient()
-    from database import SessionLocal
-    purchase = client.get_last_purchase()
-    if not purchase:
-        return None
-    db = SessionLocal()
-    db.add(purchase)
-    db.commit()
-    logger.info(f"Saved Carrefour ticket {purchase.ticket_id} with {len(purchase.products)} products")
-    return "OK"
