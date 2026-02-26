@@ -41,7 +41,7 @@ export default function Map() {
   useEffect(() => {
     async function fetchExpenses() {
       try {
-        const res = await fetch('/notifications?limit=500');
+        const res = await fetch('/expenses?limit=500');
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setExpenses(data.data || []);

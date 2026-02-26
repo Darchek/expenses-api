@@ -93,7 +93,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/notifications?limit=1000');
+        const res = await fetch('/expenses?limit=1000');
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setExpenses(data.data || []);
