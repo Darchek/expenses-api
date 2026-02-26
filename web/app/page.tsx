@@ -1,5 +1,5 @@
-import Map from './components/Map';
+import Dashboard from './components/Dashboard';
 
 export default function Home() {
-  return <Map />;
+  return <Dashboard />;
 }

@@ -2,49 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #09090c;
+  --surface: #0e0e14;
+  --surface-2: #14141c;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --gold: #e8a820;
+  --gold-dim: rgba(232,168,32,0.15);
+  --green: #22c55e;
+  --text-1: #f4f4f5;
+  --text-2: #a1a1aa;
+  --text-3: #52525b;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-  background-color: #111827;
-  color: #f3f4f6;
+  background-color: var(--bg);
+  color: var(--text-1);
+  font-family: 'Syne', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-#__next {
-  height: 100%;
-}
+.font-mono { font-family: var(--font-mono) !important; }
+.font-display { font-family: var(--font-display) !important; }
 
-/* Custom scrollbar for dark theme */
-::-webkit-scrollbar {
-  width: 8px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: #2a2a36; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a48; }
 
-::-webkit-scrollbar-track {
-  background: #1f2937;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-/* Leaflet popup dark theme override */
+/* Leaflet dark override */
 .leaflet-popup-content-wrapper {
-  background-color: #1f2937 !important;
-  color: #f3f4f6 !important;
+  background-color: var(--surface-2) !important;
+  color: var(--text-1) !important;
   border-radius: 8px;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
 }
+.leaflet-popup-tip { background-color: var(--surface-2) !important; }
+.leaflet-container { background: #09090c; }
 
-.leaflet-popup-tip {
-  background-color: #1f2937 !important;
+/* Chart tooltip */
+.recharts-tooltip-wrapper { outline: none !important; }
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
-
-.leaflet-container {
-  background: #111827;
+.shimmer {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

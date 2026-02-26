@@ -11,7 +11,7 @@ services:
     environment:
       - DB_HOST=host.docker.internal
       - DB_PORT=5432
-      - DB_NAME=mydb
+      - DB_NAME=expenses
       - DB_USER=postgres
       - DB_PASSWORD=us806dFr65LKIKcGbQLQgpFOVqaa
     restart: unless-stopped
