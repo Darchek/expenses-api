@@ -26,7 +26,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Backend source
-COPY main.py expense_classifier.py ./
+COPY main.py expense_classifier.py database.py ./
 COPY models/ ./models/
 COPY routes/ ./routes/
 

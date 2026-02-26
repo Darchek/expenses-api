@@ -8,7 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt pytest httpx
 
 # Copy only what pytest needs
-COPY main.py expense_classifier.py ./
+COPY main.py expense_classifier.py database.py ./
 COPY models/ ./models/
 COPY routes/ ./routes/
 COPY tests/ ./tests/
