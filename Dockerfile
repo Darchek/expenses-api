@@ -30,11 +30,6 @@ COPY main.py expense_classifier.py database.py ./
 COPY models/ ./models/
 COPY routes/ ./routes/
 
-# Next.js standalone build
-COPY --from=frontend-builder /frontend/.next/standalone /app/web/
-COPY --from=frontend-builder /frontend/.next/static /app/web/.next/static
-COPY --from=frontend-builder /frontend/public /app/web/public
-
 # nginx & supervisor config
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/supervisord.conf /etc/supervisor/conf.d/expenses.conf
