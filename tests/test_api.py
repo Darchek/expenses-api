@@ -26,7 +26,7 @@ VALID_NOTIFICATION = {
     "key": "key-1",
     "postTime": 1700000000000,
     "isClearable": True,
-    "title": "Payment confirmed",
+    "title": "Payment confirmed.",
     "text": "Paid €25.00 at Mercadona 🛒",
 }
 
