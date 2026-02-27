@@ -7,6 +7,7 @@ import logging
 from database import get_db
 from routes.expenses import router as expenses_router
 from routes.carrefour import router as carrefour_router
+from routes.open_food import router as open_food_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ async def health(db: Session = Depends(get_db)):
 
 app.include_router(expenses_router)
 app.include_router(carrefour_router)
+app.include_router(open_food_router)
 
 if __name__ == "__main__":
     import uvicorn
