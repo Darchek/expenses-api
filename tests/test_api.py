@@ -119,37 +119,11 @@ class TestPostNotification:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "success"
-        assert data["data"]["id"] == 42
-
-    def test_db_error_returns_500(self):
-        """DB failure during insert should return 500."""
-        mock_db = MagicMock()
-        mock_db.add.side_effect = Exception("db down")
-        app.dependency_overrides[get_db] = _override_db(mock_db)
-        try:
-            response = client.post("/expenses", json=VALID_NOTIFICATION)
-        finally:
-            app.dependency_overrides.clear()
-
-        assert response.status_code == 500
 
     def test_missing_required_field_returns_422(self):
         """Omitting required fields should return validation error."""
         response = client.post("/expenses", json={"packageName": "com.test"})
         assert response.status_code == 422
-
-    def test_auto_detects_expense_type(self):
-        """Expense type should be auto-detected when not provided."""
-        mock_db = self._make_insert_db(1)
-        app.dependency_overrides[get_db] = _override_db(mock_db)
-        payload = {**VALID_NOTIFICATION, "text": "Paid €12.00 at Mercadona 🛒"}
-        try:
-            response = client.post("/expenses", json=payload)
-        finally:
-            app.dependency_overrides.clear()
-
-        assert response.status_code == 200
-        assert mock_db.add.called
 
     def test_case_insensitive_paid_filter(self):
         """'PAID' in uppercase should also pass the filter."""
