@@ -2,22 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg: #09090c;
-  --surface: #0e0e14;
-  --surface-2: #14141c;
-  --border: rgba(255,255,255,0.07);
+  --bg: #07070f;
+  --surface: #0c0c18;
+  --surface-2: #111120;
+  --surface-3: #161628;
+  --border: rgba(255,255,255,0.06);
   --border-strong: rgba(255,255,255,0.12);
-  --gold: #e8a820;
-  --gold-dim: rgba(232,168,32,0.15);
-  --green: #22c55e;
-  --text-1: #f4f4f5;
-  --text-2: #a1a1aa;
-  --text-3: #52525b;
-  --font-display: 'Syne', sans-serif;
+  --gold: #f0b429;
+  --gold-dim: rgba(240,180,41,0.12);
+  --gold-glow: rgba(240,180,41,0.08);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,0.12);
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --orange: #fb923c;
+  --orange-dim: rgba(251,146,60,0.12);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,0.12);
+  --text-1: #f1f1f5;
+  --text-2: #a1a1b5;
+  --text-3: #52526b;
+  --font-display: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
 }
 
 html, body {
@@ -25,30 +40,27 @@ html, body {
   padding: 0;
   background-color: var(--bg);
   color: var(--text-1);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.font-mono { font-family: var(--font-mono) !important; }
-.font-display { font-family: var(--font-display) !important; }
-
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: #2a2a36; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a48; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e1e32; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2a2a46; }
 
 /* Leaflet dark override */
 .leaflet-popup-content-wrapper {
   background-color: var(--surface-2) !important;
   color: var(--text-1) !important;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--border-strong) !important;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
 }
 .leaflet-popup-tip { background-color: var(--surface-2) !important; }
-.leaflet-container { background: #09090c; }
+.leaflet-container { background: var(--bg); }
 
 /* Chart tooltip */
 .recharts-tooltip-wrapper { outline: none !important; }
@@ -61,5 +73,21 @@ html, body {
 .shimmer {
   background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Card base */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Subtle grid background on main */
+main {
+  min-height: calc(100vh - 56px);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(96,165,250,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.03) 0%, transparent 60%);
 }

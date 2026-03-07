@@ -180,3 +180,11 @@ async def update_notifications(limit: int = 100, offset: int = 0, db: Session = 
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update expenses: {str(e)}")
+
+
+@router.post("/test/insert")
+async def test_insert_carrefour_ticket(
+    background_tasks: BackgroundTasks,
+):
+    background_tasks.add_task(CarrefourClient.save_last_ticket)
+    return "OK"

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 from datetime import datetime, timedelta
@@ -7,9 +8,6 @@ from dotenv import load_dotenv
 import requests
 from curl_cffi import requests as creq
 import logging
-
-from sqlalchemy.testing.provision import follower_url_from_main
-
 from models import Purchase
 from models.open_food_facts import OpenFoodFacts
 
@@ -132,6 +130,15 @@ class CarrefourClient:
         response.raise_for_status()
         data = response.json()
         purchase = Purchase.from_api_data(data)
+        asyncio.create_task(self.fetch_extra_data(purchase))
+        return purchase
+
+    async def fetch_extra_data(self, purchase):
+        for p in purchase.products:
+            p.get_category()
+        await self.calc_mean_score(purchase)
+
+    async def calc_mean_score(self, purchase):
         score = 0
         count = 0
         for p in purchase.products:
@@ -159,7 +166,7 @@ class CarrefourClient:
         return response.json().get("content", {}).get("docs", [])
 
     def find_last_purchase(self) -> Purchase | None:
-        from_date = (datetime.now() - timedelta(minutes=5)).isoformat()
+        from_date = (datetime.now() - timedelta(minutes=1000)).isoformat()
         for i in range(60):
             logger.info(f"Looking for ticket {i} - {from_date}")
             data = self.get_last_purchase(from_date=from_date)

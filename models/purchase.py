@@ -25,6 +25,7 @@ class Purchase(Base):
             "name": self.name,
             "netAmount": float(str(self.net_amount)) if self.net_amount is not None else None,
             "numberItems": self.number_items,
+            "healthScore": float(str(self.health_score)) if self.health_score is not None else None,
             "products": [p.to_dict() for p in self.products],
         }
 

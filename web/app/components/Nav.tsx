@@ -22,9 +22,9 @@ export default function Nav() {
       <span style={{
         fontFamily: 'var(--font-display)',
         fontWeight: 800,
-        fontSize: '18px',
+        fontSize: '17px',
         color: 'var(--gold)',
-        letterSpacing: '-0.5px',
+        letterSpacing: '-0.3px',
         marginRight: '8px',
       }}>
         ◈ EXPENSES

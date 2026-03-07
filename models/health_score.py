@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from typing import Optional
-from sqlalchemy import Boolean, Column, Float, Integer, JSON, String
+from sqlalchemy import Boolean, Column, Float, Integer, JSON, String, ForeignKey
 from database import Base
 
 
@@ -150,7 +150,7 @@ class NutrientDetail:
 class HealthScore(Base):
     __tablename__ = "health_scores"
 
-    barcode           = Column(String, primary_key=True, index=True)
+    barcode           = Column(String, ForeignKey("carrefour_item.code"), primary_key=True, index=True)
     product_name      = Column(String)
     brand             = Column(String)
     is_beverage       = Column(Boolean, default=False)
@@ -165,6 +165,25 @@ class HealthScore(Base):
     total_score       = Column(Float, default=0.0)
     rating            = Column(String, default="")
     image_url         = Column(String, default="")
+
+    def to_dict(self) -> dict:
+        return {
+            "barcode": self.barcode,
+            "product_name": self.product_name,
+            "brand": self.brand,
+            "is_beverage": self.is_beverage,
+            "nova_group": self.nova_group,
+            "nutriscore_grade": self.nutriscore_grade,
+            "nutriscore_points": self.nutriscore_points,
+            "nutrient_details": self.nutrient_details,
+            "additives": self.additives,
+            "additives_points": self.additives_points,
+            "is_organic": self.is_organic,
+            "organic_points": self.organic_points,
+            "total_score": self.total_score,
+            "rating": self.rating,
+            "image_url": self.image_url
+        }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
