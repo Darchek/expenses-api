@@ -12,6 +12,6 @@ COPY main.py expense_classifier.py database.py ./
 COPY models/ ./models/
 COPY routes/ ./routes/
 COPY tests/ ./tests/
-COPY prompts/ ./prompts
+COPY prompts/ ./prompts/
 
 CMD ["pytest", "tests/", "-v", "--tb=short"]

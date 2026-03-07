@@ -83,7 +83,7 @@ async def insert_expenses(
         same_item = db.query(Expense).where(and_(Expense.post_time == post_time, Expense.amount == amount)).first()
         if same_item:
             return {
-                "status": "already",
+                "status": "success",
                 "message": "Notification with same post time and amount already exist",
                 "data": {
                     "id": same_item.id,

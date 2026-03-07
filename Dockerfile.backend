@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py expense_classifier.py database.py ./
 COPY models/ ./models/
 COPY routes/ ./routes/
-COPY prompts/ ./prompts
+COPY prompts/ ./prompts/
 
 EXPOSE 8000
 
