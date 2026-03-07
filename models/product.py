@@ -1,6 +1,5 @@
 import json
 import os
-
 from google.genai import types
 from google.genai.errors import ClientError
 from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey

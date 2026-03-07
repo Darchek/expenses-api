@@ -1,5 +1,8 @@
 import re
 from datetime import datetime
+
+from sqlalchemy import and_
+
 from expense_classifier import detect_expense_type, classify_by_emoji
 from models import NotificationRequest, Expense
 from models.carrefour_client import CarrefourClient
@@ -76,11 +79,23 @@ async def insert_expenses(
         if amount is None and notification.amount:
             amount, currency = notification.amount, notification.currency
 
+        post_time = datetime.fromtimestamp(notification.postTime / 1000)
+        same_item = db.query(Expense).where(and_(Expense.post_time == post_time, Expense.amount == amount)).first()
+        if same_item:
+            return {
+                "status": "already",
+                "message": "Notification with same post time and amount already exist",
+                "data": {
+                    "id": same_item.id,
+                    "created_at": same_item.created_at.isoformat() if same_item.created_at else None,
+                },
+            }
+
         expense = Expense(
             text=notification.text,
             latitude=notification.latitude,
             longitude=notification.longitude,
-            post_time=datetime.fromtimestamp(notification.postTime / 1000),
+            post_time=post_time,
             category=category,
             amount=amount,
             currency=currency,
