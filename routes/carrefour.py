@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from models import Product
 from models.carrefour_client import CarrefourClient
+from models.open_food_facts import OpenFoodFacts
 from models.purchase import Purchase
 from database import get_db
 
@@ -110,4 +111,23 @@ def search_product(
 ):
     """Search products by ID or name."""
     results = CarrefourClient().search_product(query, store, page)
+    return {"query": query, "count": len(results), "results": results}
+
+@router.get("/purchase/score/{ticket_id}")
+def purchase_mean_health_score(
+    ticket_id: str,
+    db: Session = Depends(get_db)
+):
+    purchase = db.query(Purchase).where(and_(Purchase.ticket_id == ticket_id)).first()
+    score = 0
+    count = 0
+    for p in purchase.products:
+        off_item = OpenFoodFacts().get_product(p.code)
+        if off_item:
+            score += off_item.total_score
+            count += 1
+    purchase.health_score = score / count
+    db.merge(purchase)
+    db.commit()
+    return purchase
     return {"query": query, "count": len(results), "results": results}

@@ -13,6 +13,7 @@ class Purchase(Base):
     name = Column(String(255), nullable=False)
     net_amount = Column("netAmount", Numeric(10, 2))
     number_items = Column("numberItems", Integer)
+    health_score = Column("healthScore", Numeric(10, 2))
 
     products = relationship("Product", back_populates="purchase", cascade="all, delete-orphan")
 

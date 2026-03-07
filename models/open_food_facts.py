@@ -4,7 +4,7 @@ import logging
 from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 from database import SessionLocal
-from models.health_score import HealthScore
+from models.health_score import HealthScore, score_product
 
 logger = logging.getLogger(__name__)
 
@@ -220,13 +220,8 @@ class OpenFoodFacts:
     def get_product_health_score(self, data: dict, code: str) -> HealthScore | None:
         if data.get("status") != 1:
             return None
-
         p = data["product"]
-        hs = self._calculate_score(p)
-        hs.barcode = code
-        hs.product_name = self._get_best_product_name(p)
-        hs.brand = p.get("brands", "Unknown brand")
-        hs.category = self._get_category(p)
+        hs = score_product(p)
         return hs
 
     def get(self, code):
@@ -245,7 +240,7 @@ class OpenFoodFacts:
         try:
             db.add(hs)
             db.commit()
-            logger.info(f"Saved health score of {hs.score} for product {hs.product_name}")
+            logger.info(f"Saved health score of {hs.total_score} for product {hs.product_name}")
         except IntegrityError as e:
             db.rollback()
             if "duplicate key" in str(e.orig):

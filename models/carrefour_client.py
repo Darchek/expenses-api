@@ -11,6 +11,7 @@ import logging
 from sqlalchemy.testing.provision import follower_url_from_main
 
 from models import Purchase
+from models.open_food_facts import OpenFoodFacts
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,16 @@ class CarrefourClient:
         )
         response.raise_for_status()
         data = response.json()
-        return Purchase.from_api_data(data)
+        purchase = Purchase.from_api_data(data)
+        score = 0
+        count = 0
+        for p in purchase.products:
+            off_item = OpenFoodFacts().get_product(p.code)
+            if off_item:
+                score += off_item.total_score
+                count += 1
+        purchase.health_score = score / count
+        return purchase
 
     def search_product(self, query: str, store: str = "004015", page: int = 1) -> list:
         params = {
